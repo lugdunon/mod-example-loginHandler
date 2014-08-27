@@ -1,0 +1,32 @@
+{
+	name              :"Login Handler and Server Status Example",
+	description       :"Provides an example of both a login handler and server status icon.",
+	version           :"0.0.1",
+	loginCheckHandlers:[
+		"net.lugdunon.examples.mod.loginHandler.SimpleRestServiceAccountMatchLoginHandler"
+	],
+	serverStatusItems:
+	[
+		{
+			name:"Match Service",
+			serverPropertyKey:"net.lugdunon.examples.match.service.enabled",
+			enabledStyle     :"background:url(http://lugdunon.net/exampleMatch/buttons.png) 0 0 no-repeat;",
+		    disabledStyle    :"background:url(http://lugdunon.net/exampleMatch/buttons.png) -32px 0 no-repeat;"
+		}
+	],
+	registeredServerProperties:
+	[
+		{
+			key:"net.lugdunon.examples.match.service.enabled",
+			name:"Example Match Service Toggle",
+			description:"Toggles the example match service.",
+			default:"false"
+		},
+		{
+			key:"net.lugdunon.examples.match.service.url",
+			name:"Example Match Service URL",
+			description:"URL for the example match service.",
+			default:"http://lugdunon.net/exampleMatch.json"
+		}
+	]
+}

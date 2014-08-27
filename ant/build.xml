@@ -1,0 +1,127 @@
+<project name="LugdunonBuildExample" default="buildDist">
+
+	<!-- THIS VALUE OF THIS PATH PROPERTY CAN BE LINKED TO THE BIN DIRECTORY OF A CURRENT LUGDUNON CLIENT OR SERVER DISTRIBUTION -->
+	<property name="lib"                      location="your lib path here"/>
+
+	<!-- ALL OF THESE ASSETS ARE AVAILABLE IN A CURRENT LUGDUNON CLIENT OR SERVER DISTRIBUTION -->
+	<property name="lugdunon"                 location="${lib}/lugdunon-server.jar"/>
+	<property name="jetty-continuation"       location="${lib}/jetty-continuation.jar"/>
+	<property name="jetty-http"               location="${lib}/jetty-http.jar"/>
+	<property name="jetty-io"                 location="${lib}/jetty-io.jar"/>
+	<property name="jetty-server"             location="${lib}/jetty-server.jar"/>
+	<property name="jetty-util"               location="${lib}/jetty-util.jar"/>
+	<property name="jetty-websocket"          location="${lib}/jetty-websocket.jar"/>
+	<property name="servlet-api"              location="${lib}/servlet-api-3.0.jar"/>
+	<property name="slf4j-api"                location="${lib}/slf4j-api-1.6.6.jar"/>
+	<property name="slf4j-jdk14"              location="${lib}/slf4j-jdk14-1.6.6.jar"/>
+	
+	<property name="classpath"                value   ="${lugdunon};${jetty-continuation};${jetty-http};${jetty-io};${jetty-server};${jetty-util};${jetty-websocket};${servlet-api};${slf4j-api};${slf4j-jdk14};"/>
+
+	<!-- lugdunon-build-tasks.jar CAN BE FOUND AT https://github.com/lugdunon/build -->
+	<taskdef name    ="minify"                       classpath="../lib/lugdunon-build-tasks.jar;${classpath}" classname="net.lugdunon.task.ManifestTask"/>
+	<taskdef name    ="minify"                       classpath="../lib/lugdunon-build-tasks.jar;${classpath}" classname="net.lugdunon.task.MinifyTask"  />
+	<taskdef name    ="ldn"                          classpath="../lib/lugdunon-build-tasks.jar;${classpath}" classname="net.lugdunon.task.LDNTask"     />
+	<taskdef name    ="ldr"                          classpath="../lib/lugdunon-build-tasks.jar;${classpath}" classname="net.lugdunon.task.LDRTask"     />
+	
+	<property name="dist"                            location="../dist"/>
+	
+	<property name="modExampleLoginHandler.src"      location="../src"/>
+	
+	<property name="repo.ldr"                        location="${dist}/repository.ldr"/>
+	
+	<!--  -->
+
+	<property name="dist.mod"          location="${dist}/mod/"/>
+
+	<property name="modExampleLoginHandler.ldn"         location="${dist.mod}/net.lugdunon.examples.mod.loginHandler.jar.ldn"/>
+	<property name="modExampleLoginHandler.jar"         location="${dist.mod}/net.lugdunon.examples.mod.loginHandler.jar"/>
+	<property name="dist.modExampleLoginHandler"        location="${dist.mod}/modExampleLoginHandler"/>
+	<property name="dist.modExampleLoginHandler.src"    location="${dist.modExampleLoginHandler}/src"/>
+	<property name="modExampleLoginHandler.classes"     location="${dist.modExampleLoginHandler}/classes"/>
+	
+	
+	<!-- ######################################################################################################## -->
+	
+	
+	<target name="init">
+		<delete dir="${dist}"/>
+		<mkdir  dir="${dist}"/>
+		
+		<!--  -->
+
+		<mkdir  dir="${dist.modExampleLoginHandler}"/>
+		<mkdir  dir="${dist.modExampleLoginHandler.src}"/>
+		<mkdir  dir="${modExampleLoginHandler.classes}"/>
+	</target>
+	
+	<target name="compile" depends="init">
+		
+		<!--MODS-->
+
+		<copy todir="${dist.modExampleLoginHandler.src}">
+			<fileset dir="${modExampleLoginHandler.src}"/>
+		</copy>
+
+		<copy todir="${modExampleLoginHandler.classes}">
+			<fileset dir="${dist.modExampleLoginHandler.src}">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+		
+		<javac srcdir   ="${dist.modExampleLoginHandler.src}"
+		       destdir  ="${modExampleLoginHandler.classes}"
+		       classpath="${classpath};${server.classes}"
+		       debug    ="on"
+	           target   ="1.7"
+		/>
+		
+	</target>
+	
+	<target name="debugBuild" unless="release" depends="compile">
+
+	</target>
+	
+	<target name="minifyForRelease" if="release" depends="compile">
+		
+		<!--MODS-->
+
+		<minify dir="${modExampleLoginHandler.classes}" />
+
+	</target>
+	
+	<target name="buildJar" depends="minifyForRelease,debugBuild">
+
+		<!-- MODS -->
+
+		<jar destfile="${modExampleLoginHandler.jar}">
+			<fileset dir="${modExampleLoginHandler.classes}"/>
+			<manifest>
+				<attribute name="Lugdunon-Asset-Provider" value="true"/>
+			</manifest>
+		</jar>
+
+	</target>
+	
+	<target name="buildDist" depends="buildJar">
+		
+		<!-- LDN GENERATION -->
+
+		<!-- MODS -->
+		
+		<ldn archive="${modExampleLoginHandler.jar}"  ldnFile="${modExampleLoginHandler.ldn}" modName="mod.json"/>
+		
+		<!-- CREATE REPOSITORY MANIFEST -->
+
+		<ldr 
+			humanReadable   ="true"
+			repoFileLocation="${repo.ldr}"
+			serverModsPath  ="${dist.server.mod}"
+		    modsPath        ="${dist.mod}"
+		    serverModBaseUrl="REPOSITORY SERVER MOD URL HERE"
+		    modBaseUrl      ="REPOSITORY WORLD MOD URL HERE"
+			name            ="REPOSITORY NAME HERE"
+			description     ="REPOSITORY DESCRIPTION HERE"
+	    />
+	</target>
+	
+</project>
